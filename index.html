@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kasino Hjælper v7 — Spil mod Computer</title>
+  <title>Kasino Hjælper v9 — Bygninger</title>
   <meta name="theme-color" content="#063b2d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Kasino Hjælper" />
@@ -16,16 +16,12 @@
       --bg2: #111827;
       --panel: rgba(255,255,255,0.96);
       --dark-panel: rgba(255,255,255,0.12);
-      --muted: #6b7280;
-      --line: #d1d5db;
       --accent: #facc15;
       --green: #047857;
       --green2: #ecfdf5;
       --red: #dc2626;
       --dark: #111827;
       --blue: #2563eb;
-      --orange: #b45309;
-      --purple: #4338ca;
     }
 
     * { box-sizing: border-box; }
@@ -82,9 +78,6 @@
     }
 
     .btn.dark { background: var(--dark); color: white; box-shadow: none; }
-    .btn.green { background: var(--green); color: white; box-shadow: none; }
-    .btn.blue { background: var(--blue); color: white; box-shadow: none; }
-    .btn.ghost { background: rgba(255,255,255,0.12); color: white; box-shadow: none; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .layout {
@@ -113,10 +106,7 @@
       backdrop-filter: blur(12px);
     }
 
-    .game-table {
-      display: grid;
-      gap: 14px;
-    }
+    .game-table { display: grid; gap: 14px; }
 
     .area-header {
       display: flex;
@@ -170,6 +160,12 @@
       border-color: rgba(255,255,255,.25);
     }
 
+    .playing-card.swipper-mark {
+      transform: rotate(180deg);
+      border-color: #facc15;
+      box-shadow: 0 0 0 3px rgba(250,204,21,0.35), 0 8px 14px rgba(0,0,0,0.2);
+    }
+
     .corner {
       position: absolute;
       left: 6px;
@@ -192,6 +188,29 @@
     .red { color: var(--red); }
     .black { color: var(--dark); }
 
+    .table-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .building {
+      background: #fef3c7;
+      border: 2px solid #facc15;
+      border-radius: 18px;
+      padding: 8px;
+      color: #78350f;
+      box-shadow: 0 6px 14px rgba(0,0,0,.13);
+    }
+
+    .building-label {
+      width: 100%;
+      font-weight: 950;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
     .score-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -205,9 +224,7 @@
       padding: 12px;
     }
 
-    .score-box strong {
-      font-size: 1.1rem;
-    }
+    .score-box strong { font-size: 1.1rem; }
 
     .pill {
       display: inline-flex;
@@ -223,7 +240,7 @@
     .pill.green { background: #dcfce7; color: #166534; }
     .pill.gold { background: #fef3c7; color: #92400e; }
     .pill.blue { background: #dbeafe; color: #1e40af; }
-    .pill.red { background: #fee2e2; color: #991b1b; }
+    .pill.purple { background: #ede9fe; color: #4c1d95; }
 
     .status {
       background: #fffbeb;
@@ -235,11 +252,24 @@
       font-size: 15px;
     }
 
-    .move-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 10px;
+    .swipper-flash {
+      background: linear-gradient(135deg, #fef3c7, #ecfdf5);
+      color: #064e3b;
+      border: 2px solid #facc15;
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      font-weight: 950;
+      line-height: 1.4;
+      animation: pop .35s ease-out;
     }
+
+    @keyframes pop {
+      from { transform: scale(.97); opacity: .55; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .move-list { display: grid; gap: 8px; margin-top: 10px; }
 
     .move-btn {
       background: white;
@@ -255,6 +285,8 @@
 
     .move-btn:hover { border-color: var(--dark); }
     .move-btn.best { border: 2px solid var(--green); background: var(--green2); }
+    .move-btn.swipper { border: 2px solid #facc15; background: #fef3c7; color: #78350f; }
+    .move-btn.build { border: 2px solid #a855f7; background: #f5f3ff; color: #4c1d95; }
 
     .log {
       max-height: 310px;
@@ -294,6 +326,34 @@
       line-height: 1.45;
     }
 
+    .pile-preview {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .mini-card {
+      height: 38px;
+      width: 28px;
+      border-radius: 7px;
+      background: white;
+      color: #111827;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 950;
+      border: 1px solid #e5e7eb;
+    }
+
+    .mini-card.swipper-mark {
+      transform: rotate(180deg);
+      border-color: #facc15;
+      background: #fef3c7;
+    }
+
     .empty {
       color: #d1d5db;
       background: rgba(255,255,255,0.08);
@@ -302,8 +362,6 @@
       width: 100%;
       font-size: 14px;
     }
-
-    .desktop-only { display: inline; }
 
     @media (max-width: 720px) {
       body { padding: 10px; }
@@ -314,7 +372,6 @@
       .corner { font-size: 12px; }
       .center-suit { font-size: 26px; }
       .score-grid { grid-template-columns: 1fr; }
-      .desktop-only { display: none; }
       .dark-panel.sticky { position: sticky; top: 8px; z-index: 10; }
     }
   </style>
@@ -325,7 +382,7 @@
       <div>
         <h1>Kasino Hjælper</h1>
         <div class="subtitle">
-          Spil en simpel omgang Kasino mod computeren. Denne version bruger direkte stik, es som 1 og 14, billedkort matcher billedkort, og klassisk pointoptælling.
+          v9: Spil mod computeren med <strong>Bygninger</strong> og <strong>Swipper</strong>. 5♠ kan stadig swippe hele bordet — også bygninger.
         </div>
       </div>
       <button class="btn" onclick="newGame()">Nyt spil</button>
@@ -339,9 +396,11 @@
             <div>
               <span class="pill blue">Hånd: <span id="computerHandCount">0</span></span>
               <span class="pill green">Stikbunke: <span id="computerPileCount">0</span></span>
+              <span class="pill purple">Swippere: <span id="computerSwippers">0</span></span>
             </div>
           </div>
           <div id="computerHand" class="cards"></div>
+          <div id="computerPilePreview" class="pile-preview"></div>
         </div>
 
         <div class="panel">
@@ -361,37 +420,32 @@
             <div>
               <span class="pill blue">Hånd: <span id="playerHandCount">0</span></span>
               <span class="pill green">Stikbunke: <span id="playerPileCount">0</span></span>
+              <span class="pill purple">Swippere: <span id="playerSwippers">0</span></span>
             </div>
           </div>
           <div id="playerHand" class="cards"></div>
+          <div id="playerPilePreview" class="pile-preview"></div>
         </div>
       </div>
 
       <div>
         <div class="panel" style="margin-bottom:16px;">
           <div id="gameResult"></div>
+          <div id="swipperFlash"></div>
           <div id="status" class="status"></div>
           <div id="moveArea"></div>
 
           <div class="rules-note">
-            <strong>v7-regler:</strong> Direkte stik er med. Bygninger er ikke med i denne første spilbare version. 
-            Scoring: flest kort = 3, flest spar = 1, hvert es = 1, 10♦ = 2, 2♠ = 1.
+            <strong>v9-regler:</strong> Du kan tage direkte stik, lave simple bygninger, tage bygninger, lave Swippere og bruge 5♠ til at swippe hele bordet.
+            Bygning i denne version er simpel: spil et talkort sammen med løse bordkort og byg til en værdi, som du også har på hånden.
           </div>
         </div>
 
         <div class="dark-panel">
-          <div class="area-header">
-            <h2>Score lige nu</h2>
-          </div>
+          <div class="area-header"><h2>Score lige nu</h2></div>
           <div class="score-grid">
-            <div class="score-box">
-              <strong>Dig</strong>
-              <div id="playerScoreDetails"></div>
-            </div>
-            <div class="score-box">
-              <strong>Computer</strong>
-              <div id="computerScoreDetails"></div>
-            </div>
+            <div class="score-box"><strong>Dig</strong><div id="playerScoreDetails"></div></div>
+            <div class="score-box"><strong>Computer</strong><div id="computerScoreDetails"></div></div>
           </div>
         </div>
 
@@ -447,15 +501,28 @@
         suit: suit.key,
         suitSymbol: suit.symbol,
         suitName: suit.name,
-        dark: suit.dark
+        dark: suit.dark,
+        swipperMarker: false
       }))
     );
 
     let state = {};
     let selectedCardId = null;
 
+    function cloneCard(card, extra = {}) { return { ...card, ...extra }; }
+    function cardName(card) { return `${card.label}${card.suitSymbol}`; }
+    function itemId(item) { return item.type === "card" ? item.card.id : item.id; }
+    function itemCards(item) { return item.type === "card" ? [item.card] : item.cards; }
+    function itemName(item) {
+      if (item.type === "card") return cardName(item.card);
+      return `Bygning ${item.value} (${item.cards.map(cardName).join(" + ")})`;
+    }
+    function itemValue(item) { return item.type === "card" ? null : item.value; }
+    function isLooseNumberCard(item) { return item.type === "card" && !item.card.face; }
+    function tableCardsAll() { return state.table.flatMap(itemCards); }
+
     function freshState() {
-      const deck = shuffle(fullDeck);
+      const deck = shuffle(fullDeck.map(c => cloneCard(c)));
       return {
         deck,
         table: [],
@@ -463,10 +530,14 @@
         computerHand: [],
         playerPile: [],
         computerPile: [],
+        playerSwippers: 0,
+        computerSwippers: 0,
         turn: "player",
         lastCapture: null,
         gameOver: false,
-        log: []
+        log: [],
+        lastSwipperMessage: "",
+        buildingCounter: 1
       };
     }
 
@@ -479,17 +550,14 @@
       return copy;
     }
 
-    function cardName(card) {
-      return `${card.label}${card.suitSymbol}`;
-    }
-
     function renderCard(card, opts = {}) {
       const colorClass = card.dark ? "black" : "red";
       const selected = opts.selected ? "selected" : "";
       const disabled = opts.disabled ? "disabled" : "";
+      const swipper = card.swipperMarker ? "swipper-mark" : "";
       const click = opts.onClick ? `onclick="${opts.onClick}"` : "";
       return `
-        <button class="playing-card ${selected} ${disabled}" ${click}>
+        <button class="playing-card ${selected} ${disabled} ${swipper}" ${click}>
           <div class="corner ${colorClass}">
             <div>${card.label}</div>
             <div>${card.suitSymbol}</div>
@@ -503,18 +571,38 @@
       return `<div class="playing-card back disabled"><div class="center-suit" style="color:white;">KH</div></div>`;
     }
 
+    function renderTableItem(item) {
+      if (item.type === "card") return renderCard(item.card, { disabled: true });
+      return `
+        <div class="building">
+          <div class="building-label">Bygning på ${item.value}</div>
+          <div class="table-item">
+            ${item.cards.map(card => renderCard(card, { disabled: true })).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function miniCard(card) {
+      const swipper = card.swipperMarker ? "swipper-mark" : "";
+      return `<span class="mini-card ${swipper}">${cardName(card)}</span>`;
+    }
+
+    function pilePreview(pile) {
+      if (!pile.length) return `<span class="pill">Ingen stik endnu</span>`;
+      const top = pile.slice(-5).reverse();
+      return `<span class="pill">Top af stikbunke:</span>${top.map(miniCard).join("")}`;
+    }
+
     function log(text) {
       state.log.unshift(text);
-      if (state.log.length > 60) state.log.pop();
+      if (state.log.length > 100) state.log.pop();
     }
 
-    function clearLog() {
-      state.log = [];
-      render();
-    }
+    function clearLog() { state.log = []; render(); }
 
     function dealInitial() {
-      state.table = draw(4);
+      state.table = draw(4).map(card => ({ type: "card", card }));
       state.playerHand = draw(4);
       state.computerHand = draw(4);
     }
@@ -532,9 +620,7 @@
       }
     }
 
-    function draw(count) {
-      return state.deck.splice(0, count);
-    }
+    function draw(count) { return state.deck.splice(0, count); }
 
     function newGame() {
       state = freshState();
@@ -544,66 +630,162 @@
       render();
     }
 
-    function getValues(card) {
-      return card.rank === "A" ? [1, 14] : card.values;
+    function getValues(card) { return card.rank === "A" ? [1, 14] : card.values; }
+    function getCaptureValues(card) { return card.face ? [card.value] : getValues(card); }
+
+    function tableCaptureItemsFor(handCard) {
+      const items = [];
+
+      if (handCard.id === "5S" && state.table.length > 0) {
+        items.push({
+          kind: "five-spades-swipper",
+          handCard,
+          takeItems: [...state.table],
+          takeCards: tableCardsAll(),
+          total: "all",
+          score: 10000 + tableCardsAll().reduce((sum, card) => sum + cardStrategicScore(card), 0),
+          swipper: true
+        });
+      }
+
+      if (handCard.face) {
+        state.table.forEach(item => {
+          if (item.type === "card" && item.card.rank === handCard.rank) {
+            items.push(makeTakeMove(handCard, [item], item.card.value, "normal"));
+          }
+        });
+        return items.sort((a, b) => b.score - a.score);
+      }
+
+      const targetValues = getCaptureValues(handCard);
+
+      // Capture buildings matching the played card value
+      state.table.forEach(item => {
+        if (item.type === "building" && targetValues.includes(item.value)) {
+          items.push(makeTakeMove(handCard, [item], item.value, "normal"));
+        }
+      });
+
+      // Capture loose number cards in combinations; buildings can be included as units.
+      const candidates = state.table.filter(item => {
+        if (item.type === "card") return !item.card.face;
+        if (item.type === "building") return targetValues.includes(item.value);
+        return false;
+      });
+
+      const combos = findItemCombinations(candidates, targetValues);
+      combos.forEach(combo => {
+        if (combo.items.length) items.push(makeTakeMove(handCard, combo.items, combo.total, "normal"));
+      });
+
+      return uniqueMoves(items).sort((a, b) => b.score - a.score);
     }
 
-    function findCombinations(cards, targetValues) {
+    function makeTakeMove(handCard, takeItems, total, kind) {
+      const takeCards = takeItems.flatMap(itemCards);
+      const swipper = takeItems.length === state.table.length && takeItems.length > 0;
+      return {
+        type: "take",
+        kind,
+        handCard,
+        takeItems,
+        takeCards,
+        total,
+        score: moveScore(handCard, takeCards, swipper, kind),
+        swipper
+      };
+    }
+
+    function findItemCombinations(items, targetValues) {
       const results = [];
       const maxTarget = Math.max(...targetValues);
 
-      function search(startIndex, currentCards, currentSum, usedValues) {
-        if (targetValues.includes(currentSum) && currentCards.length > 0) {
-          results.push({ cards: [...currentCards], usedValues: [...usedValues], total: currentSum });
+      function valuesForItem(item) {
+        if (item.type === "building") return [item.value];
+        return getValues(item.card);
+      }
+
+      function search(startIndex, currentItems, currentSum) {
+        if (targetValues.includes(currentSum) && currentItems.length > 0) {
+          results.push({ items: [...currentItems], total: currentSum });
         }
         if (currentSum > maxTarget) return;
 
-        for (let i = startIndex; i < cards.length; i++) {
-          const card = cards[i];
-          for (const value of getValues(card)) {
-            search(i + 1, [...currentCards, card], currentSum + value, [...usedValues, value]);
+        for (let i = startIndex; i < items.length; i++) {
+          const item = items[i];
+          for (const value of valuesForItem(item)) {
+            search(i + 1, [...currentItems, item], currentSum + value);
           }
         }
       }
 
-      search(0, [], 0, []);
-
+      search(0, [], 0);
       const seen = new Set();
       return results.filter(result => {
-        const key = result.cards.map(c => c.id).sort().join("-") + "::" + result.total + "::" + result.usedValues.join("+");
+        const key = result.items.map(itemId).sort().join("-") + "::" + result.total;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       });
     }
 
-    function possibleTakesForCard(handCard, tableCards = state.table) {
-      if (handCard.face) {
-        return tableCards
-          .filter(tableCard => tableCard.rank === handCard.rank)
-          .map(tableCard => ({
-            handCard,
-            takeCards: [tableCard],
-            total: tableCard.value,
-            usedValues: [tableCard.value],
-            score: moveScore(handCard, [tableCard])
-          }))
-          .sort((a, b) => b.score - a.score);
+    function possibleBuildsForCard(playCard, hand) {
+      if (playCard.face) return [];
+
+      const otherHandCards = hand.filter(c => c.id !== playCard.id && !c.face);
+      const looseCandidates = state.table.filter(isLooseNumberCard);
+      const builds = [];
+
+      for (const targetCard of otherHandCards) {
+        for (const targetValue of getCaptureValues(targetCard)) {
+          if (targetValue < 2 || targetValue > 14) continue;
+          const neededTargets = [targetValue - getValues(playCard)[0], targetValue - (playCard.rank === "A" ? 14 : getValues(playCard)[0])].filter(v => v > 0);
+          const combos = findItemCombinations(looseCandidates, neededTargets);
+          combos.forEach(combo => {
+            const usedPlayValue = targetValue - combo.total;
+            if (getValues(playCard).includes(usedPlayValue)) {
+              builds.push({
+                type: "build",
+                playCard,
+                targetCard,
+                targetValue,
+                tableItems: combo.items,
+                buildCards: [playCard, ...combo.items.flatMap(itemCards)],
+                score: buildScore(playCard, targetCard, combo.items)
+              });
+            }
+          });
+        }
       }
 
-      return findCombinations(tableCards.filter(c => !c.face), getValues(handCard))
-        .map(combo => ({
-          handCard,
-          takeCards: combo.cards,
-          total: combo.total,
-          usedValues: combo.usedValues,
-          score: moveScore(handCard, combo.cards)
-        }))
-        .sort((a, b) => b.score - a.score);
+      return uniqueBuilds(builds).sort((a, b) => b.score - a.score);
     }
 
     function allMovesForHand(hand) {
-      return hand.flatMap(card => possibleTakesForCard(card)).sort((a, b) => b.score - a.score);
+      return hand.flatMap(card => [
+        ...tableCaptureItemsFor(card),
+        ...possibleBuildsForCard(card, hand)
+      ]).sort((a, b) => b.score - a.score);
+    }
+
+    function uniqueMoves(moves) {
+      const seen = new Set();
+      return moves.filter(move => {
+        const key = move.type + "::" + move.kind + "::" + move.handCard.id + "::" + move.takeItems.map(itemId).sort().join("-");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function uniqueBuilds(builds) {
+      const seen = new Set();
+      return builds.filter(build => {
+        const key = build.playCard.id + "::" + build.targetCard.id + "::" + build.targetValue + "::" + build.tableItems.map(itemId).sort().join("-");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     }
 
     function cardStrategicScore(card) {
@@ -615,8 +797,16 @@
       return score;
     }
 
-    function moveScore(handCard, takeCards) {
-      return 100 + takeCards.length * 12 + [handCard, ...takeCards].reduce((sum, card) => sum + cardStrategicScore(card), 0);
+    function moveScore(handCard, takeCards, isSwipper = false, kind = "normal") {
+      let score = 100 + takeCards.length * 12 + [handCard, ...takeCards].reduce((sum, card) => sum + cardStrategicScore(card), 0);
+      if (isSwipper) score += 180;
+      if (kind === "five-spades-swipper") score += 8000;
+      return score;
+    }
+
+    function buildScore(playCard, targetCard, tableItems) {
+      const cards = [playCard, targetCard, ...tableItems.flatMap(itemCards)];
+      return 70 + tableItems.length * 8 + targetCard.value * 3 + cards.reduce((sum, card) => sum + cardStrategicScore(card), 0);
     }
 
     function selectPlayerCard(cardId) {
@@ -625,38 +815,79 @@
       render();
     }
 
+    function markSwipper(owner, pile) {
+      const top = pile[pile.length - 1];
+      if (top) top.swipperMarker = true;
+
+      if (owner === "player") {
+        state.playerSwippers += 1;
+        state.lastSwipperMessage = "🧹 SWIPPER! Du ryddede bordet.";
+        log("🧹 SWIPPER! Du ryddede bordet og vender topkortet i din stikbunke.");
+      } else {
+        state.computerSwippers += 1;
+        state.lastSwipperMessage = "🧹 Computer-Swipper! Computeren ryddede bordet.";
+        log("🧹 SWIPPER! Computeren ryddede bordet og vender topkortet i sin stikbunke.");
+      }
+    }
+
     function playCardWithoutTake(cardId) {
       if (state.gameOver || state.turn !== "player") return;
       const card = removeCard(state.playerHand, cardId);
       if (!card) return;
-      state.table.push(card);
+      state.table.push({ type: "card", card });
       log(`Du lagde ${cardName(card)} på bordet.`);
       selectedCardId = null;
-      state.turn = "computer";
-      render();
-      setTimeout(computerTurn, 650);
+      finishPlayerTurn();
     }
 
-    function takeMove(cardId, takeIds) {
+    function takeMove(cardId, itemIds, kind = "normal") {
       if (state.gameOver || state.turn !== "player") return;
       const handCard = removeCard(state.playerHand, cardId);
       if (!handCard) return;
 
-      const taken = [];
-      for (const id of takeIds.split(",")) {
-        const card = removeCard(state.table, id);
-        if (card) taken.push(card);
+      const ids = itemIds.split(",").filter(Boolean);
+      const takenItems = ids.map(id => removeTableItem(id)).filter(Boolean);
+      const takenCards = takenItems.flatMap(itemCards);
+
+      state.playerPile.push(handCard, ...takenCards);
+      state.lastCapture = "player";
+
+      if (kind === "five-spades-swipper") {
+        log(`Du spillede 5♠ og swippede hele bordet: ${takenCards.map(cardName).join(" + ")}.`);
+      } else {
+        log(`Du spillede ${cardName(handCard)} og tog ${takenItems.map(itemName).join(" + ")}.`);
       }
 
-      state.playerPile.push(handCard, ...taken);
-      state.lastCapture = "player";
-      log(`Du spillede ${cardName(handCard)} og tog ${taken.map(cardName).join(" + ")}.`);
+      if (state.table.length === 0 && takenCards.length > 0) markSwipper("player", state.playerPile);
       selectedCardId = null;
+      finishPlayerTurn();
+    }
 
+    function buildMove(cardId, itemIds, targetValue) {
+      if (state.gameOver || state.turn !== "player") return;
+      const playCard = removeCard(state.playerHand, cardId);
+      if (!playCard) return;
+
+      const ids = itemIds.split(",").filter(Boolean);
+      const usedItems = ids.map(id => removeTableItem(id)).filter(Boolean);
+      const buildCards = [playCard, ...usedItems.flatMap(itemCards)];
+      const building = {
+        type: "building",
+        id: `B${state.buildingCounter++}`,
+        value: Number(targetValue),
+        cards: buildCards
+      };
+      state.table.push(building);
+      log(`Du byggede ${targetValue} med ${buildCards.map(cardName).join(" + ")}.`);
+      selectedCardId = null;
+      finishPlayerTurn();
+    }
+
+    function finishPlayerTurn() {
       state.turn = "computer";
+      state.lastSwipperMessage = state.lastSwipperMessage || "";
       dealHandsIfNeeded();
       render();
-
       if (!state.gameOver) setTimeout(computerTurn, 750);
     }
 
@@ -666,25 +897,25 @@
       return list.splice(index, 1)[0];
     }
 
+    function removeTableItem(id) {
+      const index = state.table.findIndex(item => itemId(item) === id);
+      if (index === -1) return null;
+      return state.table.splice(index, 1)[0];
+    }
+
     function computerTurn() {
       if (state.gameOver || state.turn !== "computer") return;
 
+      state.lastSwipperMessage = "";
       const moves = allMovesForHand(state.computerHand);
       if (moves.length > 0) {
         const move = moves[0];
-        const handCard = removeCard(state.computerHand, move.handCard.id);
-        const taken = [];
-        for (const card of move.takeCards) {
-          const removed = removeCard(state.table, card.id);
-          if (removed) taken.push(removed);
-        }
-        state.computerPile.push(handCard, ...taken);
-        state.lastCapture = "computer";
-        log(`Computeren spillede ${cardName(handCard)} og tog ${taken.map(cardName).join(" + ")}.`);
+        if (move.type === "take") computerTake(move);
+        else computerBuild(move);
       } else {
         const cardToLay = chooseComputerLayCard();
         const card = removeCard(state.computerHand, cardToLay.id);
-        state.table.push(card);
+        state.table.push({ type: "card", card });
         log(`Computeren lagde ${cardName(card)} på bordet.`);
       }
 
@@ -693,53 +924,84 @@
       render();
     }
 
+    function computerTake(move) {
+      const handCard = removeCard(state.computerHand, move.handCard.id);
+      const takenItems = move.takeItems.map(item => removeTableItem(itemId(item))).filter(Boolean);
+      const takenCards = takenItems.flatMap(itemCards);
+      state.computerPile.push(handCard, ...takenCards);
+      state.lastCapture = "computer";
+
+      if (move.kind === "five-spades-swipper") {
+        log(`Computeren spillede 5♠ og swippede hele bordet: ${takenCards.map(cardName).join(" + ")}.`);
+      } else {
+        log(`Computeren spillede ${cardName(handCard)} og tog ${takenItems.map(itemName).join(" + ")}.`);
+      }
+
+      if (state.table.length === 0 && takenCards.length > 0) markSwipper("computer", state.computerPile);
+    }
+
+    function computerBuild(move) {
+      const playCard = removeCard(state.computerHand, move.playCard.id);
+      const usedItems = move.tableItems.map(item => removeTableItem(itemId(item))).filter(Boolean);
+      const buildCards = [playCard, ...usedItems.flatMap(itemCards)];
+      state.table.push({
+        type: "building",
+        id: `B${state.buildingCounter++}`,
+        value: move.targetValue,
+        cards: buildCards
+      });
+      log(`Computeren byggede ${move.targetValue} med ${buildCards.map(cardName).join(" + ")}.`);
+    }
+
     function chooseComputerLayCard() {
       return [...state.computerHand].sort((a, b) => cardStrategicScore(a) - cardStrategicScore(b))[0];
     }
 
     function endGame() {
       if (state.table.length > 0 && state.lastCapture) {
+        const remainingCards = tableCardsAll();
         if (state.lastCapture === "player") {
-          state.playerPile.push(...state.table);
-          log(`Du fik de sidste bordkort: ${state.table.map(cardName).join(" + ")}.`);
+          state.playerPile.push(...remainingCards);
+          log(`Du fik de sidste bordkort: ${remainingCards.map(cardName).join(" + ")}.`);
         } else {
-          state.computerPile.push(...state.table);
-          log(`Computeren fik de sidste bordkort: ${state.table.map(cardName).join(" + ")}.`);
+          state.computerPile.push(...remainingCards);
+          log(`Computeren fik de sidste bordkort: ${remainingCards.map(cardName).join(" + ")}.`);
         }
         state.table = [];
       }
       state.gameOver = true;
       state.turn = "done";
+      state.lastSwipperMessage = "";
       log("Spillet er slut.");
     }
 
-    function scorePile(pile, opponentPile) {
+    function scorePile(pile, opponentPile, swippers) {
+      const mySpades = pile.filter(c => c.suit === "S").length;
+      const oppSpades = opponentPile.filter(c => c.suit === "S").length;
       const base = {
         cards: pile.length,
-        spades: pile.filter(c => c.suit === "S").length,
+        spades: mySpades,
         aces: pile.filter(c => c.rank === "A").length,
         bigKasino: pile.some(c => c.id === "10D") ? 2 : 0,
         littleKasino: pile.some(c => c.id === "2S") ? 1 : 0,
-        mostCards: 0,
-        mostSpades: 0,
+        swippers,
+        mostCards: pile.length > opponentPile.length ? 3 : 0,
+        mostSpades: mySpades > oppSpades ? 1 : 0,
         total: 0
       };
-
-      if (pile.length > opponentPile.length) base.mostCards = 3;
-      if (pile.filter(c => c.suit === "S").length > opponentPile.filter(c => c.suit === "S").length) base.mostSpades = 1;
-
-      base.total = base.aces + base.bigKasino + base.littleKasino + base.mostCards + base.mostSpades;
+      base.total = base.aces + base.bigKasino + base.littleKasino + base.mostCards + base.mostSpades + swippers;
       return base;
     }
 
-    function scoreText(myPile, oppPile) {
-      const s = scorePile(myPile, oppPile);
+    function scoreText(myPile, oppPile, mySwippers) {
+      const s = scorePile(myPile, oppPile, mySwippers);
       return `
         <div style="margin-top:8px;">
           <span class="pill green">Point: ${s.total}</span>
           <span class="pill">Kort: ${s.cards}${s.mostCards ? " +3" : ""}</span>
           <span class="pill">Spar: ${s.spades}${s.mostSpades ? " +1" : ""}</span>
           <span class="pill">Es: ${s.aces}</span>
+          <span class="pill purple">Swippere: ${s.swippers}</span>
           ${s.bigKasino ? '<span class="pill gold">10♦ +2</span>' : ""}
           ${s.littleKasino ? '<span class="pill gold">2♠ +1</span>' : ""}
         </div>
@@ -748,10 +1010,7 @@
 
     function renderMoveArea() {
       const area = document.getElementById("moveArea");
-      if (state.gameOver) {
-        area.innerHTML = "";
-        return;
-      }
+      if (state.gameOver) { area.innerHTML = ""; return; }
 
       if (state.turn !== "player") {
         area.innerHTML = `<div class="move-list"><button class="move-btn" disabled>Computeren tænker...</button></div>`;
@@ -764,42 +1023,49 @@
       }
 
       const card = state.playerHand.find(c => c.id === selectedCardId);
-      const moves = possibleTakesForCard(card);
-      const best = moves[0];
+      const takeMoves = tableCaptureItemsFor(card);
+      const buildMoves = possibleBuildsForCard(card, state.playerHand);
+      const allMoves = [...takeMoves, ...buildMoves].sort((a, b) => b.score - a.score);
+      const best = allMoves[0];
 
       const layButton = `<button class="move-btn" onclick="playCardWithoutTake('${card.id}')">Læg ${cardName(card)} på bordet uden stik</button>`;
 
-      if (!moves.length) {
-        area.innerHTML = `
-          <div class="move-list">
-            <button class="move-btn" disabled>Ingen stik med ${cardName(card)}.</button>
-            ${layButton}
-          </div>
-        `;
-        return;
-      }
-
-      const moveButtons = moves.map(move => {
-        const bestClass = best && move.takeCards.map(c => c.id).sort().join("-") === best.takeCards.map(c => c.id).sort().join("-") ? "best" : "";
+      const takeButtons = takeMoves.map(move => {
+        const bestClass = best === move ? "best" : "";
+        const swipperClass = move.swipper ? "swipper" : "";
+        const label = move.kind === "five-spades-swipper"
+          ? `🧹 SWIPPER: Spil 5♠ → swip hele bordet (${move.takeCards.map(cardName).join(" + ")})`
+          : `${move.swipper ? "🧹 SWIPPER: " : ""}Spil ${cardName(card)} → tag ${move.takeItems.map(itemName).join(" + ")}`;
         return `
-          <button class="move-btn ${bestClass}" onclick="takeMove('${card.id}', '${move.takeCards.map(c => c.id).join(",")}')">
-            ${bestClass ? "⭐ " : ""}Spil ${cardName(card)} → tag ${move.takeCards.map(cardName).join(" + ")}
+          <button class="move-btn ${bestClass} ${swipperClass}" onclick="takeMove('${card.id}', '${move.takeItems.map(itemId).join(",")}', '${move.kind}')">
+            ${bestClass ? "⭐ " : ""}${label}
           </button>
         `;
       }).join("");
 
-      area.innerHTML = `<div class="move-list">${moveButtons}${layButton}</div>`;
+      const buildButtons = buildMoves.map(move => {
+        const bestClass = best === move ? "best" : "";
+        return `
+          <button class="move-btn build ${bestClass}" onclick="buildMove('${card.id}', '${move.tableItems.map(itemId).join(",")}', '${move.targetValue}')">
+            ${bestClass ? "⭐ " : ""}Byg ${move.targetValue}: Spil ${cardName(card)} sammen med ${move.tableItems.map(itemName).join(" + ")} — du har ${cardName(move.targetCard)} til at tage den
+          </button>
+        `;
+      }).join("");
+
+      if (!takeMoves.length && !buildMoves.length) {
+        area.innerHTML = `<div class="move-list"><button class="move-btn" disabled>Ingen stik eller bygning med ${cardName(card)}.</button>${layButton}</div>`;
+        return;
+      }
+
+      area.innerHTML = `<div class="move-list">${takeButtons}${buildButtons}${layButton}</div>`;
     }
 
     function renderResult() {
       const el = document.getElementById("gameResult");
-      if (!state.gameOver) {
-        el.innerHTML = "";
-        return;
-      }
+      if (!state.gameOver) { el.innerHTML = ""; return; }
 
-      const player = scorePile(state.playerPile, state.computerPile);
-      const computer = scorePile(state.computerPile, state.playerPile);
+      const player = scorePile(state.playerPile, state.computerPile, state.playerSwippers);
+      const computer = scorePile(state.computerPile, state.playerPile, state.computerSwippers);
       let headline = "Uafgjort!";
       if (player.total > computer.total) headline = "Du vandt!";
       if (computer.total > player.total) headline = "Computeren vandt.";
@@ -807,7 +1073,8 @@
       el.innerHTML = `
         <div class="result">
           <strong>${headline}</strong><br />
-          Slutscore: Dig ${player.total} — Computer ${computer.total}
+          Slutscore: Dig ${player.total} — Computer ${computer.total}<br />
+          Swippere: Dig ${state.playerSwippers} — Computer ${state.computerSwippers}
         </div>
       `;
     }
@@ -817,6 +1084,8 @@
       document.getElementById("playerHandCount").textContent = state.playerHand.length;
       document.getElementById("computerPileCount").textContent = state.computerPile.length;
       document.getElementById("playerPileCount").textContent = state.playerPile.length;
+      document.getElementById("computerSwippers").textContent = state.computerSwippers;
+      document.getElementById("playerSwippers").textContent = state.playerSwippers;
       document.getElementById("deckCount").textContent = state.deck.length;
       document.getElementById("turnLabel").textContent = state.turn === "player" ? "Dig" : state.turn === "computer" ? "Computer" : "Slut";
 
@@ -824,7 +1093,7 @@
         state.computerHand.length ? state.computerHand.map(cardBack).join("") : `<div class="empty">Computeren har ingen kort lige nu.</div>`;
 
       document.getElementById("tableCards").innerHTML =
-        state.table.length ? state.table.map(card => renderCard(card, { disabled: true })).join("") : `<div class="empty">Bordet er tomt.</div>`;
+        state.table.length ? state.table.map(renderTableItem).join("") : `<div class="empty">Bordet er tomt.</div>`;
 
       document.getElementById("playerHand").innerHTML =
         state.playerHand.length
@@ -834,13 +1103,19 @@
             })).join("")
           : `<div class="empty">Du har ingen kort lige nu.</div>`;
 
+      document.getElementById("playerPilePreview").innerHTML = pilePreview(state.playerPile);
+      document.getElementById("computerPilePreview").innerHTML = pilePreview(state.computerPile);
+
       const status = document.getElementById("status");
       if (state.gameOver) status.textContent = "Spillet er slut. Tryk Nyt spil for at spille igen.";
-      else if (state.turn === "player") status.textContent = selectedCardId ? "Vælg et stik — eller læg kortet på bordet." : "Din tur. Vælg et kort fra hånden.";
+      else if (state.turn === "player") status.textContent = selectedCardId ? "Vælg stik, bygning, Swipper — eller læg kortet." : "Din tur. Vælg et kort fra hånden.";
       else status.textContent = "Computerens tur.";
 
-      document.getElementById("playerScoreDetails").innerHTML = scoreText(state.playerPile, state.computerPile);
-      document.getElementById("computerScoreDetails").innerHTML = scoreText(state.computerPile, state.playerPile);
+      const flash = document.getElementById("swipperFlash");
+      flash.innerHTML = state.lastSwipperMessage ? `<div class="swipper-flash">${state.lastSwipperMessage}</div>` : "";
+
+      document.getElementById("playerScoreDetails").innerHTML = scoreText(state.playerPile, state.computerPile, state.playerSwippers);
+      document.getElementById("computerScoreDetails").innerHTML = scoreText(state.computerPile, state.playerPile, state.computerSwippers);
 
       document.getElementById("log").innerHTML =
         state.log.length ? state.log.map(entry => `<div class="log-entry">${entry}</div>`).join("") : `<div class="log-entry">Ingen træk endnu.</div>`;

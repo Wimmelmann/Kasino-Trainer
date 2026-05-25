@@ -1,7 +1,7 @@
 {
   "name": "Kasino Hjælper",
   "short_name": "Kasino",
-  "description": "Spil en simpel omgang Kasino mod computeren.",
+  "description": "Spil Kasino mod computeren med bygninger og Swipper-regler.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#063b2d",

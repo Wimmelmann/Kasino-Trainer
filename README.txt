@@ -1,14 +1,15 @@
-# Kasino Hjælper v7 — Spil mod Computer
+# Kasino Hjælper v9 — Bygninger
 
 Nyheder:
-- Spil en simpel omgang Kasino mod computeren
-- Computeren vælger bedste direkte stik efter simpel pointlogik
-- Slutscore med flest kort, flest spar, esser, 10♦ og 2♠
-- Installérbar/offline som tidligere versioner
+- Spil mod computeren med simple bygninger
+- Du kan bygge en værdi, hvis du også har et kort på hånden til at tage bygningen senere
+- Bygninger vises som gule grupper på bordet
+- Du og computeren kan tage bygninger ved at spille den rigtige værdi
+- 5♠ kan stadig swippe hele bordet, inklusive bygninger
+- Swipper-regler fra v8 er bevaret
 
-Vigtigt:
-- Denne første spilbare version har direkte stik, men IKKE bygninger.
-- Bygninger kan tilføjes i v8.
+Begrænsning:
+- Bygninger er "simple" i denne version. Avancerede ombygninger/dobbelte bygninger er ikke fuldt implementeret endnu.
 
 Upload/erstat disse filer i roden af dit GitHub repo:
 - index.html
