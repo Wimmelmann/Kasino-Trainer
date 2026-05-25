@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kasino Hjælper v7 — Spil mod Computer</title>
+  <meta name="theme-color" content="#063b2d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Kasino Hjælper" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    :root {
+      --bg1: #063b2d;
+      --bg2: #111827;
+      --panel: rgba(255,255,255,0.96);
+      --dark-panel: rgba(255,255,255,0.12);
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #facc15;
+      --green: #047857;
+      --green2: #ecfdf5;
+      --red: #dc2626;
+      --dark: #111827;
+      --blue: #2563eb;
+      --orange: #b45309;
+      --purple: #4338ca;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top left, #0f766e, transparent 35%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: white;
+      padding: 14px;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .app { max-width: 1180px; margin: 0 auto; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 6vw, 4.2rem);
+      margin: 0 0 8px;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    h2, h3 { margin: 0; }
+
+    .subtitle {
+      color: #d1d5db;
+      max-width: 850px;
+      line-height: 1.45;
+      font-size: 1rem;
+    }
+
+    .btn {
+      border: 0;
+      cursor: pointer;
+      font-weight: 900;
+      font-family: inherit;
+      touch-action: manipulation;
+      border-radius: 14px;
+      padding: 11px 14px;
+      background: white;
+      color: var(--dark);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.16);
+    }
+
+    .btn.dark { background: var(--dark); color: white; box-shadow: none; }
+    .btn.green { background: var(--green); color: white; box-shadow: none; }
+    .btn.blue { background: var(--blue); color: white; box-shadow: none; }
+    .btn.ghost { background: rgba(255,255,255,0.12); color: white; box-shadow: none; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 0.9fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--panel);
+      color: var(--dark);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 22px 50px rgba(0,0,0,0.24);
+    }
+
+    .dark-panel {
+      background: var(--dark-panel);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 22px 50px rgba(0,0,0,0.22);
+      backdrop-filter: blur(12px);
+    }
+
+    .game-table {
+      display: grid;
+      gap: 14px;
+    }
+
+    .area-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .cards {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-height: 76px;
+      align-items: center;
+    }
+
+    .playing-card {
+      position: relative;
+      height: 84px;
+      width: 60px;
+      border-radius: 14px;
+      background: white;
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.17);
+      transition: transform .12s, box-shadow .12s, border-color .12s;
+      color: var(--dark);
+      flex: 0 0 auto;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .playing-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 14px rgba(0,0,0,0.2);
+    }
+
+    .playing-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(250,204,21,0.45);
+    }
+
+    .playing-card.disabled {
+      cursor: default;
+      opacity: .9;
+    }
+
+    .playing-card.back {
+      background: linear-gradient(135deg, #1e293b, #0f766e);
+      border-color: rgba(255,255,255,.25);
+    }
+
+    .corner {
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      text-align: left;
+      font-weight: 950;
+      line-height: .95;
+      font-size: 14px;
+    }
+
+    .center-suit {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 950;
+    }
+
+    .red { color: var(--red); }
+    .black { color: var(--dark); }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .score-box {
+      background: rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .score-box strong {
+      font-size: 1.1rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 950;
+      background: #e5e7eb;
+      color: #374151;
+      margin: 2px;
+    }
+
+    .pill.green { background: #dcfce7; color: #166534; }
+    .pill.gold { background: #fef3c7; color: #92400e; }
+    .pill.blue { background: #dbeafe; color: #1e40af; }
+    .pill.red { background: #fee2e2; color: #991b1b; }
+
+    .status {
+      background: #fffbeb;
+      color: #92400e;
+      border-radius: 16px;
+      padding: 12px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .move-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .move-btn {
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 15px;
+      padding: 11px;
+      text-align: left;
+      color: var(--dark);
+      cursor: pointer;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .move-btn:hover { border-color: var(--dark); }
+    .move-btn.best { border: 2px solid var(--green); background: var(--green2); }
+
+    .log {
+      max-height: 310px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .log-entry {
+      background: #f3f4f6;
+      color: #374151;
+      border-radius: 13px;
+      padding: 9px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .result {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 2px solid #10b981;
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+
+    .rules-note {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      color: #475569;
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .empty {
+      color: #d1d5db;
+      background: rgba(255,255,255,0.08);
+      padding: 12px;
+      border-radius: 15px;
+      width: 100%;
+      font-size: 14px;
+    }
+
+    .desktop-only { display: inline; }
+
+    @media (max-width: 720px) {
+      body { padding: 10px; }
+      .panel, .dark-panel { border-radius: 18px; padding: 12px; }
+      .topbar { align-items: stretch; }
+      .btn { width: 100%; }
+      .playing-card { width: 52px; height: 74px; border-radius: 12px; }
+      .corner { font-size: 12px; }
+      .center-suit { font-size: 26px; }
+      .score-grid { grid-template-columns: 1fr; }
+      .desktop-only { display: none; }
+      .dark-panel.sticky { position: sticky; top: 8px; z-index: 10; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <h1>Kasino Hjælper</h1>
+        <div class="subtitle">
+          Spil en simpel omgang Kasino mod computeren. Denne version bruger direkte stik, es som 1 og 14, billedkort matcher billedkort, og klassisk pointoptælling.
+        </div>
+      </div>
+      <button class="btn" onclick="newGame()">Nyt spil</button>
+    </div>
+
+    <div class="layout">
+      <div class="game-table">
+        <div class="dark-panel sticky">
+          <div class="area-header">
+            <h2>Computer</h2>
+            <div>
+              <span class="pill blue">Hånd: <span id="computerHandCount">0</span></span>
+              <span class="pill green">Stikbunke: <span id="computerPileCount">0</span></span>
+            </div>
+          </div>
+          <div id="computerHand" class="cards"></div>
+        </div>
+
+        <div class="panel">
+          <div class="area-header">
+            <h2>Bordet</h2>
+            <div>
+              <span class="pill gold">Kort i bunken: <span id="deckCount">0</span></span>
+              <span class="pill blue">Tur: <span id="turnLabel">Dig</span></span>
+            </div>
+          </div>
+          <div id="tableCards" class="cards"></div>
+        </div>
+
+        <div class="dark-panel">
+          <div class="area-header">
+            <h2>Din hånd</h2>
+            <div>
+              <span class="pill blue">Hånd: <span id="playerHandCount">0</span></span>
+              <span class="pill green">Stikbunke: <span id="playerPileCount">0</span></span>
+            </div>
+          </div>
+          <div id="playerHand" class="cards"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom:16px;">
+          <div id="gameResult"></div>
+          <div id="status" class="status"></div>
+          <div id="moveArea"></div>
+
+          <div class="rules-note">
+            <strong>v7-regler:</strong> Direkte stik er med. Bygninger er ikke med i denne første spilbare version. 
+            Scoring: flest kort = 3, flest spar = 1, hvert es = 1, 10♦ = 2, 2♠ = 1.
+          </div>
+        </div>
+
+        <div class="dark-panel">
+          <div class="area-header">
+            <h2>Score lige nu</h2>
+          </div>
+          <div class="score-grid">
+            <div class="score-box">
+              <strong>Dig</strong>
+              <div id="playerScoreDetails"></div>
+            </div>
+            <div class="score-box">
+              <strong>Computer</strong>
+              <div id="computerScoreDetails"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <div class="area-header">
+            <h2>Spillog</h2>
+            <button class="btn dark" onclick="clearLog()">Ryd log</button>
+          </div>
+          <div id="log" class="log"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+      });
+    }
+
+    const suits = [
+      { key: "S", symbol: "♠", name: "Spar", dark: true },
+      { key: "H", symbol: "♥", name: "Hjerter", dark: false },
+      { key: "D", symbol: "♦", name: "Ruder", dark: false },
+      { key: "C", symbol: "♣", name: "Klør", dark: true },
+    ];
+
+    const ranks = [
+      { key: "A", label: "A", value: 1, values: [1, 14], face: false },
+      { key: "2", label: "2", value: 2, values: [2], face: false },
+      { key: "3", label: "3", value: 3, values: [3], face: false },
+      { key: "4", label: "4", value: 4, values: [4], face: false },
+      { key: "5", label: "5", value: 5, values: [5], face: false },
+      { key: "6", label: "6", value: 6, values: [6], face: false },
+      { key: "7", label: "7", value: 7, values: [7], face: false },
+      { key: "8", label: "8", value: 8, values: [8], face: false },
+      { key: "9", label: "9", value: 9, values: [9], face: false },
+      { key: "10", label: "10", value: 10, values: [10], face: false },
+      { key: "J", label: "J", value: 11, values: [11], face: true },
+      { key: "Q", label: "Q", value: 12, values: [12], face: true },
+      { key: "K", label: "K", value: 13, values: [13], face: true },
+    ];
+
+    const fullDeck = suits.flatMap(suit =>
+      ranks.map(rank => ({
+        id: `${rank.key}${suit.key}`,
+        rank: rank.key,
+        label: rank.label,
+        value: rank.value,
+        values: rank.values,
+        face: rank.face,
+        suit: suit.key,
+        suitSymbol: suit.symbol,
+        suitName: suit.name,
+        dark: suit.dark
+      }))
+    );
+
+    let state = {};
+    let selectedCardId = null;
+
+    function freshState() {
+      const deck = shuffle(fullDeck);
+      return {
+        deck,
+        table: [],
+        playerHand: [],
+        computerHand: [],
+        playerPile: [],
+        computerPile: [],
+        turn: "player",
+        lastCapture: null,
+        gameOver: false,
+        log: []
+      };
+    }
+
+    function shuffle(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function cardName(card) {
+      return `${card.label}${card.suitSymbol}`;
+    }
+
+    function renderCard(card, opts = {}) {
+      const colorClass = card.dark ? "black" : "red";
+      const selected = opts.selected ? "selected" : "";
+      const disabled = opts.disabled ? "disabled" : "";
+      const click = opts.onClick ? `onclick="${opts.onClick}"` : "";
+      return `
+        <button class="playing-card ${selected} ${disabled}" ${click}>
+          <div class="corner ${colorClass}">
+            <div>${card.label}</div>
+            <div>${card.suitSymbol}</div>
+          </div>
+          <div class="center-suit ${colorClass}">${card.suitSymbol}</div>
+        </button>
+      `;
+    }
+
+    function cardBack() {
+      return `<div class="playing-card back disabled"><div class="center-suit" style="color:white;">KH</div></div>`;
+    }
+
+    function log(text) {
+      state.log.unshift(text);
+      if (state.log.length > 60) state.log.pop();
+    }
+
+    function clearLog() {
+      state.log = [];
+      render();
+    }
+
+    function dealInitial() {
+      state.table = draw(4);
+      state.playerHand = draw(4);
+      state.computerHand = draw(4);
+    }
+
+    function dealHandsIfNeeded() {
+      if (state.gameOver) return;
+      if (state.playerHand.length === 0 && state.computerHand.length === 0) {
+        if (state.deck.length > 0) {
+          state.playerHand = draw(Math.min(4, state.deck.length));
+          state.computerHand = draw(Math.min(4, state.deck.length));
+          log("Der blev delt nye kort.");
+        } else {
+          endGame();
+        }
+      }
+    }
+
+    function draw(count) {
+      return state.deck.splice(0, count);
+    }
+
+    function newGame() {
+      state = freshState();
+      selectedCardId = null;
+      dealInitial();
+      log("Nyt spil startet.");
+      render();
+    }
+
+    function getValues(card) {
+      return card.rank === "A" ? [1, 14] : card.values;
+    }
+
+    function findCombinations(cards, targetValues) {
+      const results = [];
+      const maxTarget = Math.max(...targetValues);
+
+      function search(startIndex, currentCards, currentSum, usedValues) {
+        if (targetValues.includes(currentSum) && currentCards.length > 0) {
+          results.push({ cards: [...currentCards], usedValues: [...usedValues], total: currentSum });
+        }
+        if (currentSum > maxTarget) return;
+
+        for (let i = startIndex; i < cards.length; i++) {
+          const card = cards[i];
+          for (const value of getValues(card)) {
+            search(i + 1, [...currentCards, card], currentSum + value, [...usedValues, value]);
+          }
+        }
+      }
+
+      search(0, [], 0, []);
+
+      const seen = new Set();
+      return results.filter(result => {
+        const key = result.cards.map(c => c.id).sort().join("-") + "::" + result.total + "::" + result.usedValues.join("+");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function possibleTakesForCard(handCard, tableCards = state.table) {
+      if (handCard.face) {
+        return tableCards
+          .filter(tableCard => tableCard.rank === handCard.rank)
+          .map(tableCard => ({
+            handCard,
+            takeCards: [tableCard],
+            total: tableCard.value,
+            usedValues: [tableCard.value],
+            score: moveScore(handCard, [tableCard])
+          }))
+          .sort((a, b) => b.score - a.score);
+      }
+
+      return findCombinations(tableCards.filter(c => !c.face), getValues(handCard))
+        .map(combo => ({
+          handCard,
+          takeCards: combo.cards,
+          total: combo.total,
+          usedValues: combo.usedValues,
+          score: moveScore(handCard, combo.cards)
+        }))
+        .sort((a, b) => b.score - a.score);
+    }
+
+    function allMovesForHand(hand) {
+      return hand.flatMap(card => possibleTakesForCard(card)).sort((a, b) => b.score - a.score);
+    }
+
+    function cardStrategicScore(card) {
+      let score = 1;
+      if (card.id === "10D") score += 60;
+      if (card.id === "2S") score += 50;
+      if (card.rank === "A") score += 25;
+      if (card.suit === "S") score += 8;
+      return score;
+    }
+
+    function moveScore(handCard, takeCards) {
+      return 100 + takeCards.length * 12 + [handCard, ...takeCards].reduce((sum, card) => sum + cardStrategicScore(card), 0);
+    }
+
+    function selectPlayerCard(cardId) {
+      if (state.gameOver || state.turn !== "player") return;
+      selectedCardId = selectedCardId === cardId ? null : cardId;
+      render();
+    }
+
+    function playCardWithoutTake(cardId) {
+      if (state.gameOver || state.turn !== "player") return;
+      const card = removeCard(state.playerHand, cardId);
+      if (!card) return;
+      state.table.push(card);
+      log(`Du lagde ${cardName(card)} på bordet.`);
+      selectedCardId = null;
+      state.turn = "computer";
+      render();
+      setTimeout(computerTurn, 650);
+    }
+
+    function takeMove(cardId, takeIds) {
+      if (state.gameOver || state.turn !== "player") return;
+      const handCard = removeCard(state.playerHand, cardId);
+      if (!handCard) return;
+
+      const taken = [];
+      for (const id of takeIds.split(",")) {
+        const card = removeCard(state.table, id);
+        if (card) taken.push(card);
+      }
+
+      state.playerPile.push(handCard, ...taken);
+      state.lastCapture = "player";
+      log(`Du spillede ${cardName(handCard)} og tog ${taken.map(cardName).join(" + ")}.`);
+      selectedCardId = null;
+
+      state.turn = "computer";
+      dealHandsIfNeeded();
+      render();
+
+      if (!state.gameOver) setTimeout(computerTurn, 750);
+    }
+
+    function removeCard(list, cardId) {
+      const index = list.findIndex(card => card.id === cardId);
+      if (index === -1) return null;
+      return list.splice(index, 1)[0];
+    }
+
+    function computerTurn() {
+      if (state.gameOver || state.turn !== "computer") return;
+
+      const moves = allMovesForHand(state.computerHand);
+      if (moves.length > 0) {
+        const move = moves[0];
+        const handCard = removeCard(state.computerHand, move.handCard.id);
+        const taken = [];
+        for (const card of move.takeCards) {
+          const removed = removeCard(state.table, card.id);
+          if (removed) taken.push(removed);
+        }
+        state.computerPile.push(handCard, ...taken);
+        state.lastCapture = "computer";
+        log(`Computeren spillede ${cardName(handCard)} og tog ${taken.map(cardName).join(" + ")}.`);
+      } else {
+        const cardToLay = chooseComputerLayCard();
+        const card = removeCard(state.computerHand, cardToLay.id);
+        state.table.push(card);
+        log(`Computeren lagde ${cardName(card)} på bordet.`);
+      }
+
+      state.turn = "player";
+      dealHandsIfNeeded();
+      render();
+    }
+
+    function chooseComputerLayCard() {
+      return [...state.computerHand].sort((a, b) => cardStrategicScore(a) - cardStrategicScore(b))[0];
+    }
+
+    function endGame() {
+      if (state.table.length > 0 && state.lastCapture) {
+        if (state.lastCapture === "player") {
+          state.playerPile.push(...state.table);
+          log(`Du fik de sidste bordkort: ${state.table.map(cardName).join(" + ")}.`);
+        } else {
+          state.computerPile.push(...state.table);
+          log(`Computeren fik de sidste bordkort: ${state.table.map(cardName).join(" + ")}.`);
+        }
+        state.table = [];
+      }
+      state.gameOver = true;
+      state.turn = "done";
+      log("Spillet er slut.");
+    }
+
+    function scorePile(pile, opponentPile) {
+      const base = {
+        cards: pile.length,
+        spades: pile.filter(c => c.suit === "S").length,
+        aces: pile.filter(c => c.rank === "A").length,
+        bigKasino: pile.some(c => c.id === "10D") ? 2 : 0,
+        littleKasino: pile.some(c => c.id === "2S") ? 1 : 0,
+        mostCards: 0,
+        mostSpades: 0,
+        total: 0
+      };
+
+      if (pile.length > opponentPile.length) base.mostCards = 3;
+      if (pile.filter(c => c.suit === "S").length > opponentPile.filter(c => c.suit === "S").length) base.mostSpades = 1;
+
+      base.total = base.aces + base.bigKasino + base.littleKasino + base.mostCards + base.mostSpades;
+      return base;
+    }
+
+    function scoreText(myPile, oppPile) {
+      const s = scorePile(myPile, oppPile);
+      return `
+        <div style="margin-top:8px;">
+          <span class="pill green">Point: ${s.total}</span>
+          <span class="pill">Kort: ${s.cards}${s.mostCards ? " +3" : ""}</span>
+          <span class="pill">Spar: ${s.spades}${s.mostSpades ? " +1" : ""}</span>
+          <span class="pill">Es: ${s.aces}</span>
+          ${s.bigKasino ? '<span class="pill gold">10♦ +2</span>' : ""}
+          ${s.littleKasino ? '<span class="pill gold">2♠ +1</span>' : ""}
+        </div>
+      `;
+    }
+
+    function renderMoveArea() {
+      const area = document.getElementById("moveArea");
+      if (state.gameOver) {
+        area.innerHTML = "";
+        return;
+      }
+
+      if (state.turn !== "player") {
+        area.innerHTML = `<div class="move-list"><button class="move-btn" disabled>Computeren tænker...</button></div>`;
+        return;
+      }
+
+      if (!selectedCardId) {
+        area.innerHTML = `<div class="move-list"><button class="move-btn" disabled>Vælg et kort fra din hånd.</button></div>`;
+        return;
+      }
+
+      const card = state.playerHand.find(c => c.id === selectedCardId);
+      const moves = possibleTakesForCard(card);
+      const best = moves[0];
+
+      const layButton = `<button class="move-btn" onclick="playCardWithoutTake('${card.id}')">Læg ${cardName(card)} på bordet uden stik</button>`;
+
+      if (!moves.length) {
+        area.innerHTML = `
+          <div class="move-list">
+            <button class="move-btn" disabled>Ingen stik med ${cardName(card)}.</button>
+            ${layButton}
+          </div>
+        `;
+        return;
+      }
+
+      const moveButtons = moves.map(move => {
+        const bestClass = best && move.takeCards.map(c => c.id).sort().join("-") === best.takeCards.map(c => c.id).sort().join("-") ? "best" : "";
+        return `
+          <button class="move-btn ${bestClass}" onclick="takeMove('${card.id}', '${move.takeCards.map(c => c.id).join(",")}')">
+            ${bestClass ? "⭐ " : ""}Spil ${cardName(card)} → tag ${move.takeCards.map(cardName).join(" + ")}
+          </button>
+        `;
+      }).join("");
+
+      area.innerHTML = `<div class="move-list">${moveButtons}${layButton}</div>`;
+    }
+
+    function renderResult() {
+      const el = document.getElementById("gameResult");
+      if (!state.gameOver) {
+        el.innerHTML = "";
+        return;
+      }
+
+      const player = scorePile(state.playerPile, state.computerPile);
+      const computer = scorePile(state.computerPile, state.playerPile);
+      let headline = "Uafgjort!";
+      if (player.total > computer.total) headline = "Du vandt!";
+      if (computer.total > player.total) headline = "Computeren vandt.";
+
+      el.innerHTML = `
+        <div class="result">
+          <strong>${headline}</strong><br />
+          Slutscore: Dig ${player.total} — Computer ${computer.total}
+        </div>
+      `;
+    }
+
+    function render() {
+      document.getElementById("computerHandCount").textContent = state.computerHand.length;
+      document.getElementById("playerHandCount").textContent = state.playerHand.length;
+      document.getElementById("computerPileCount").textContent = state.computerPile.length;
+      document.getElementById("playerPileCount").textContent = state.playerPile.length;
+      document.getElementById("deckCount").textContent = state.deck.length;
+      document.getElementById("turnLabel").textContent = state.turn === "player" ? "Dig" : state.turn === "computer" ? "Computer" : "Slut";
+
+      document.getElementById("computerHand").innerHTML =
+        state.computerHand.length ? state.computerHand.map(cardBack).join("") : `<div class="empty">Computeren har ingen kort lige nu.</div>`;
+
+      document.getElementById("tableCards").innerHTML =
+        state.table.length ? state.table.map(card => renderCard(card, { disabled: true })).join("") : `<div class="empty">Bordet er tomt.</div>`;
+
+      document.getElementById("playerHand").innerHTML =
+        state.playerHand.length
+          ? state.playerHand.map(card => renderCard(card, {
+              selected: card.id === selectedCardId,
+              onClick: `selectPlayerCard('${card.id}')`
+            })).join("")
+          : `<div class="empty">Du har ingen kort lige nu.</div>`;
+
+      const status = document.getElementById("status");
+      if (state.gameOver) status.textContent = "Spillet er slut. Tryk Nyt spil for at spille igen.";
+      else if (state.turn === "player") status.textContent = selectedCardId ? "Vælg et stik — eller læg kortet på bordet." : "Din tur. Vælg et kort fra hånden.";
+      else status.textContent = "Computerens tur.";
+
+      document.getElementById("playerScoreDetails").innerHTML = scoreText(state.playerPile, state.computerPile);
+      document.getElementById("computerScoreDetails").innerHTML = scoreText(state.computerPile, state.playerPile);
+
+      document.getElementById("log").innerHTML =
+        state.log.length ? state.log.map(entry => `<div class="log-entry">${entry}</div>`).join("") : `<div class="log-entry">Ingen træk endnu.</div>`;
+
+      renderMoveArea();
+      renderResult();
+    }
+
+    newGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "Kasino Hjælper",
+  "short_name": "Kasino",
+  "description": "Spil en simpel omgang Kasino mod computeren.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#063b2d",
+  "theme_color": "#063b2d",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
