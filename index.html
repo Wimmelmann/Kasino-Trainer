@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kasino Hjælper v9 — Bygninger</title>
+  <title>Kasino Hjælper v9.1 — Hurtigere Computer</title>
   <meta name="theme-color" content="#063b2d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Kasino Hjælper" />
@@ -382,7 +382,7 @@
       <div>
         <h1>Kasino Hjælper</h1>
         <div class="subtitle">
-          v9: Spil mod computeren med <strong>Bygninger</strong> og <strong>Swipper</strong>. 5♠ kan stadig swippe hele bordet — også bygninger.
+          v9.1: Spil mod computeren med <strong>Bygninger</strong> og <strong>Swipper</strong>. 5♠ kan stadig swippe hele bordet — også bygninger.
         </div>
       </div>
       <button class="btn" onclick="newGame()">Nyt spil</button>
@@ -508,6 +508,11 @@
 
     let state = {};
     let selectedCardId = null;
+
+    // v9.1: Safety caps so the computer never spends too long calculating building combinations.
+    const MAX_BUILD_CANDIDATES = 8;
+    const MAX_COMBO_RESULTS = 80;
+    const COMPUTER_THINK_DELAY_MS = 350;
 
     function cloneCard(card, extra = {}) { return { ...card, ...extra }; }
     function cardName(card) { return `${card.label}${card.suitSymbol}`; }
@@ -696,9 +701,15 @@
       };
     }
 
-    function findItemCombinations(items, targetValues) {
+    function findItemCombinations(items, targetValues, options = {}) {
+      const maxItems = options.maxItems || items.length;
+      const maxResults = options.maxResults || MAX_COMBO_RESULTS;
+      const usableItems = items.slice(0, maxItems);
       const results = [];
-      const maxTarget = Math.max(...targetValues);
+      const positiveTargets = targetValues.filter(v => Number.isFinite(v) && v > 0);
+      if (!positiveTargets.length || !usableItems.length) return results;
+
+      const maxTarget = Math.max(...positiveTargets);
 
       function valuesForItem(item) {
         if (item.type === "building") return [item.value];
@@ -706,20 +717,28 @@
       }
 
       function search(startIndex, currentItems, currentSum) {
-        if (targetValues.includes(currentSum) && currentItems.length > 0) {
-          results.push({ items: [...currentItems], total: currentSum });
-        }
-        if (currentSum > maxTarget) return;
+        if (results.length >= maxResults) return;
 
-        for (let i = startIndex; i < items.length; i++) {
-          const item = items[i];
+        if (positiveTargets.includes(currentSum) && currentItems.length > 0) {
+          results.push({ items: [...currentItems], total: currentSum });
+          if (results.length >= maxResults) return;
+        }
+
+        if (currentSum >= maxTarget) return;
+
+        for (let i = startIndex; i < usableItems.length; i++) {
+          const item = usableItems[i];
           for (const value of valuesForItem(item)) {
-            search(i + 1, [...currentItems, item], currentSum + value);
+            if (currentSum + value <= maxTarget) {
+              search(i + 1, [...currentItems, item], currentSum + value);
+              if (results.length >= maxResults) return;
+            }
           }
         }
       }
 
       search(0, [], 0);
+
       const seen = new Set();
       return results.filter(result => {
         const key = result.items.map(itemId).sort().join("-") + "::" + result.total;
@@ -729,21 +748,35 @@
       });
     }
 
-    function possibleBuildsForCard(playCard, hand) {
+    function possibleBuildsForCard(playCard, hand, options = {}) {
       if (playCard.face) return [];
 
+      const maxCandidates = options.maxCandidates || MAX_BUILD_CANDIDATES;
+      const maxResults = options.maxResults || MAX_COMBO_RESULTS;
       const otherHandCards = hand.filter(c => c.id !== playCard.id && !c.face);
-      const looseCandidates = state.table.filter(isLooseNumberCard);
+      let looseCandidates = state.table.filter(isLooseNumberCard);
+
+      // Prefer valuable loose cards and keep the search small enough for phones.
+      looseCandidates = looseCandidates
+        .sort((a, b) => cardStrategicScore(b.card) - cardStrategicScore(a.card))
+        .slice(0, maxCandidates);
+
       const builds = [];
 
       for (const targetCard of otherHandCards) {
         for (const targetValue of getCaptureValues(targetCard)) {
           if (targetValue < 2 || targetValue > 14) continue;
-          const neededTargets = [targetValue - getValues(playCard)[0], targetValue - (playCard.rank === "A" ? 14 : getValues(playCard)[0])].filter(v => v > 0);
-          const combos = findItemCombinations(looseCandidates, neededTargets);
-          combos.forEach(combo => {
-            const usedPlayValue = targetValue - combo.total;
-            if (getValues(playCard).includes(usedPlayValue)) {
+
+          for (const playValue of getValues(playCard)) {
+            const needed = targetValue - playValue;
+            if (needed <= 0) continue;
+
+            const combos = findItemCombinations(looseCandidates, [needed], {
+              maxItems: maxCandidates,
+              maxResults
+            });
+
+            combos.forEach(combo => {
               builds.push({
                 type: "build",
                 playCard,
@@ -753,19 +786,31 @@
                 buildCards: [playCard, ...combo.items.flatMap(itemCards)],
                 score: buildScore(playCard, targetCard, combo.items)
               });
-            }
-          });
+            });
+
+            if (builds.length >= maxResults) return uniqueBuilds(builds).sort((a, b) => b.score - a.score);
+          }
         }
       }
 
       return uniqueBuilds(builds).sort((a, b) => b.score - a.score);
     }
 
-    function allMovesForHand(hand) {
-      return hand.flatMap(card => [
-        ...tableCaptureItemsFor(card),
-        ...possibleBuildsForCard(card, hand)
-      ]).sort((a, b) => b.score - a.score);
+    function allMovesForHand(hand, options = {}) {
+      const includeBuilds = options.includeBuilds !== false;
+      const buildOptions = {
+        maxCandidates: options.maxBuildCandidates || MAX_BUILD_CANDIDATES,
+        maxResults: options.maxBuildResults || MAX_COMBO_RESULTS
+      };
+
+      const moves = [];
+      for (const card of hand) {
+        moves.push(...tableCaptureItemsFor(card));
+        if (includeBuilds) {
+          moves.push(...possibleBuildsForCard(card, hand, buildOptions));
+        }
+      }
+      return moves.sort((a, b) => b.score - a.score);
     }
 
     function uniqueMoves(moves) {
@@ -888,7 +933,7 @@
       state.lastSwipperMessage = state.lastSwipperMessage || "";
       dealHandsIfNeeded();
       render();
-      if (!state.gameOver) setTimeout(computerTurn, 750);
+      if (!state.gameOver) setTimeout(computerTurn, COMPUTER_THINK_DELAY_MS);
     }
 
     function removeCard(list, cardId) {
@@ -907,16 +952,43 @@
       if (state.gameOver || state.turn !== "computer") return;
 
       state.lastSwipperMessage = "";
-      const moves = allMovesForHand(state.computerHand);
-      if (moves.length > 0) {
-        const move = moves[0];
-        if (move.type === "take") computerTake(move);
-        else computerBuild(move);
-      } else {
+
+      try {
+        // Fast path: direct takes first. This avoids heavy build-search in crowded table positions.
+        let moves = state.computerHand
+          .flatMap(card => tableCaptureItemsFor(card))
+          .sort((a, b) => b.score - a.score);
+
+        // Only consider simple builds if there is no direct take.
+        if (!moves.length) {
+          moves = state.computerHand
+            .flatMap(card => possibleBuildsForCard(card, state.computerHand, {
+              maxCandidates: 6,
+              maxResults: 25
+            }))
+            .sort((a, b) => b.score - a.score);
+        }
+
+        if (moves.length > 0) {
+          const move = moves[0];
+          if (move.type === "take") computerTake(move);
+          else computerBuild(move);
+        } else {
+          const cardToLay = chooseComputerLayCard();
+          const card = removeCard(state.computerHand, cardToLay.id);
+          state.table.push({ type: "card", card });
+          log(`Computeren lagde ${cardName(card)} på bordet.`);
+        }
+      } catch (error) {
+        // Safety fallback: never leave the UI stuck on “Computeren tænker...”
         const cardToLay = chooseComputerLayCard();
-        const card = removeCard(state.computerHand, cardToLay.id);
-        state.table.push({ type: "card", card });
-        log(`Computeren lagde ${cardName(card)} på bordet.`);
+        if (cardToLay) {
+          const card = removeCard(state.computerHand, cardToLay.id);
+          state.table.push({ type: "card", card });
+          log(`Computeren lagde ${cardName(card)} på bordet.`);
+        } else {
+          log("Computeren kunne ikke finde et træk.");
+        }
       }
 
       state.turn = "player";

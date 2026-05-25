@@ -1,4 +1,4 @@
-const CACHE_NAME = "kasino-hjaelper-v9-buildings";
+const CACHE_NAME = "kasino-hjaelper-v9-1-fast-computer";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",

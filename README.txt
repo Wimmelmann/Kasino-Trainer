@@ -1,15 +1,10 @@
-# Kasino Hjælper v9 — Bygninger
+# Kasino Hjælper v9.1 — Hurtigere Computer
 
-Nyheder:
-- Spil mod computeren med simple bygninger
-- Du kan bygge en værdi, hvis du også har et kort på hånden til at tage bygningen senere
-- Bygninger vises som gule grupper på bordet
-- Du og computeren kan tage bygninger ved at spille den rigtige værdi
-- 5♠ kan stadig swippe hele bordet, inklusive bygninger
-- Swipper-regler fra v8 er bevaret
-
-Begrænsning:
-- Bygninger er "simple" i denne version. Avancerede ombygninger/dobbelte bygninger er ikke fuldt implementeret endnu.
+Patch:
+- Fixer problemet hvor computeren kan blive hængende på “Computeren tænker...”
+- Computerens bygning-søgning er nu begrænset og hurtigere
+- Computeren leder først efter direkte stik, og overvejer kun bygninger hvis der ikke er et stik
+- Fallback: hvis AI-beregningen fejler, lægger computeren bare et kort i stedet for at hænge
 
 Upload/erstat disse filer i roden af dit GitHub repo:
 - index.html
@@ -17,3 +12,7 @@ Upload/erstat disse filer i roden af dit GitHub repo:
 - service-worker.js
 - icon-192.png
 - icon-512.png
+
+Hvis telefonen stadig viser gammel version:
+- Luk appen helt og åbn igen
+- Eller åbn linket i browseren og refresh
