@@ -1,7 +1,7 @@
 {
   "name": "Kasino Hjælper",
   "short_name": "Kasino",
-  "description": "Spil Kasino mod computeren med Aalborg-tema, designindstillinger, drag-and-drop, bygninger og Swipper.",
+  "description": "Spil Kasino mod computeren med korrekte Kasino-værdier, Aalborg-tema, bygninger og Swipper.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0F1B2D",

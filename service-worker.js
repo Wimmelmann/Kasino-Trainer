@@ -1,4 +1,4 @@
-const CACHE_NAME = "kasino-hjaelper-v10-aalborg-design";
+const CACHE_NAME = "kasino-hjaelper-v10-2-kasino-values";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",

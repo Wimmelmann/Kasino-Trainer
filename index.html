@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kasino Hjælper v10 — Aalborg Design</title>
+  <title>Kasino Hjælper v10.2 — Kasino Values</title>
   <meta name="theme-color" content="#063b2d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Kasino Hjælper" />
@@ -425,6 +425,7 @@
     .move-btn.swipper { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 18%, white); color: var(--dark); }
     .move-btn.build { border: 2px solid #a855f7; background: #f5f3ff; color: #4c1d95; }
     .move-btn.doublebuild { border: 2px solid #0ea5e9; background: #eff6ff; color: #075985; }
+    .move-btn.tablebuild { border: 2px solid #14b8a6; background: #ecfeff; color: #115e59; }
 
     .log {
       max-height: 310px;
@@ -521,7 +522,7 @@
         <div class="brand-badge">◆ Aalborg Swipper Edition</div>
         <h1>Kasino Hjælper</h1>
         <div class="subtitle">
-          v10: Aalborg/AaB-inspireret tema, designindstillinger, <strong>drag-and-drop</strong>, <strong>Bygninger</strong>, <strong>Dobbeltbygninger</strong> og <strong>Swipper</strong>. 5♠ kan stadig swippe hele bordet — også bygninger.
+          v10.2: Korrekte Kasino-værdier, Aalborg/AaB-inspireret tema, <strong>drag-and-drop</strong>, bygninger, dobbeltbygninger og <strong>Swipper</strong>. 5♠ kan stadig swippe hele bordet — også bygninger.
         </div>
 
         <details class="design-panel">
@@ -605,8 +606,8 @@
           <div id="moveArea"></div>
 
           <div class="rules-note">
-            <strong>v10-regler:</strong> Du kan tage direkte stik, lave simple bygninger, tage dobbeltbygninger, lave Swippere og bruge 5♠ til at swippe hele bordet. Du kan også trække et kort fra hånden op på bordet for at lægge det.
-            Bygning i denne version: spil et talkort sammen med løse bordkort og byg til en værdi, som du også har på hånden. Ny i v9.2: bordkort kan også bruges som dobbeltbygning, så fx et bordkort på 12 kan kombineres med andre bordkort der også danner 12 og tages med din egen 12'er.
+            <strong>v10.2-regler:</strong> Du kan tage direkte stik, lave simple bygninger, tage bordbygninger/dobbeltbygninger, lave Swippere og bruge 5♠ til at swippe hele bordet. Du kan også trække et kort fra hånden op på bordet for at lægge det. Lille Kasino 2♠ har værdierne 2 og 15. Store Kasino 10♦ har værdierne 10 og 16. Flest kort giver 1 point.
+            Bygning i denne version: spil et talkort sammen med løse bordkort og byg til en værdi, som du også har på hånden. Ny/fikset i v10.1: bordkort alene kan også samles til en bygning, som tages med et matchende kort på hånden — fx 10 + 3 = 13, som kan tages med K.
           </div>
         </div>
 
@@ -962,7 +963,12 @@
       render();
     }
 
-    function getValues(card) { return card.rank === "A" ? [1, 14] : card.values; }
+    function getValues(card) {
+      if (card.id === "2S") return [2, 15];      // Lille Kasino
+      if (card.id === "10D") return [10, 16];    // Store Kasino
+      if (card.rank === "A") return [1, 14];
+      return card.values;
+    }
     function getCaptureValues(card) { return card.face ? [card.value] : getValues(card); }
 
 
@@ -1017,6 +1023,9 @@
         state.table.forEach(item => {
           if (item.type === "card" && item.card.rank === handCard.rank) {
             items.push(makeTakeMove(handCard, [item], item.card.value, "normal"));
+          }
+          if (item.type === "building" && item.value === handCard.value) {
+            items.push(makeTakeMove(handCard, [item], item.value, "normal"));
           }
         });
         items.push(...tableDoubleBuildMovesFor(handCard));
@@ -1110,6 +1119,47 @@
       });
     }
 
+
+    function possibleTableOnlyBuildsForCard(targetCard, hand, options = {}) {
+      // v10.1: Allows builds from table cards alone, including face-card targets.
+      // Example: target card K on your hand, table has 10 + 3. You can group those as a building on 13.
+      const maxCandidates = options.maxCandidates || MAX_BUILD_CANDIDATES;
+      const maxResults = options.maxResults || MAX_COMBO_RESULTS;
+      const targetValues = getCaptureValues(targetCard);
+      let looseCandidates = state.table.filter(isLooseNumberCard);
+
+      looseCandidates = looseCandidates
+        .sort((a, b) => cardStrategicScore(b.card) - cardStrategicScore(a.card))
+        .slice(0, maxCandidates);
+
+      const builds = [];
+
+      for (const targetValue of targetValues) {
+        if (targetValue < 2 || targetValue > 16) continue;
+
+        const combos = findItemCombinations(looseCandidates, [targetValue], {
+          maxItems: maxCandidates,
+          maxResults
+        });
+
+        combos.forEach(combo => {
+          if (combo.items.length < 2) return;
+          builds.push({
+            type: "table-build",
+            targetCard,
+            targetValue,
+            tableItems: combo.items,
+            buildCards: combo.items.flatMap(itemCards),
+            score: 85 + targetValue * 4 + combo.items.length * 10 + combo.items.flatMap(itemCards).reduce((sum, card) => sum + cardStrategicScore(card), 0)
+          });
+        });
+
+        if (builds.length >= maxResults) return uniqueTableBuilds(builds).sort((a, b) => b.score - a.score);
+      }
+
+      return uniqueTableBuilds(builds).sort((a, b) => b.score - a.score);
+    }
+
     function possibleBuildsForCard(playCard, hand, options = {}) {
       if (playCard.face) return [];
 
@@ -1127,7 +1177,7 @@
 
       for (const targetCard of otherHandCards) {
         for (const targetValue of getCaptureValues(targetCard)) {
-          if (targetValue < 2 || targetValue > 14) continue;
+          if (targetValue < 2 || targetValue > 16) continue;
 
           for (const playValue of getValues(playCard)) {
             const needed = targetValue - playValue;
@@ -1170,6 +1220,7 @@
         moves.push(...tableCaptureItemsFor(card));
         if (includeBuilds) {
           moves.push(...possibleBuildsForCard(card, hand, buildOptions));
+          moves.push(...possibleTableOnlyBuildsForCard(card, hand, buildOptions));
         }
       }
       return moves.sort((a, b) => b.score - a.score);
@@ -1179,6 +1230,17 @@
       const seen = new Set();
       return moves.filter(move => {
         const key = move.type + "::" + move.kind + "::" + move.handCard.id + "::" + move.total + "::" + move.takeItems.map(itemId).sort().join("-");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+
+    function uniqueTableBuilds(builds) {
+      const seen = new Set();
+      return builds.filter(build => {
+        const key = build.targetCard.id + "::" + build.targetValue + "::" + build.tableItems.map(itemId).sort().join("-");
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -1331,6 +1393,31 @@
       finishPlayerTurn();
     }
 
+
+    function tableOnlyBuildMove(itemIds, targetValue, targetCardId) {
+      if (state.gameOver || state.turn !== "player") return;
+
+      const ids = itemIds.split(",").filter(Boolean);
+      const usedItems = ids.map(id => removeTableItem(id)).filter(Boolean);
+      const buildCards = usedItems.flatMap(itemCards);
+
+      if (buildCards.length < 2) return;
+
+      const building = {
+        type: "building",
+        id: `B${state.buildingCounter++}`,
+        value: Number(targetValue),
+        cards: buildCards
+      };
+
+      state.table.push(building);
+      const targetCard = state.playerHand.find(c => c.id === targetCardId);
+      const targetName = targetCard ? cardName(targetCard) : `dit kort på ${targetValue}`;
+      log(`Du samlede en bordbygning på ${targetValue} med ${buildCards.map(cardName).join(" + ")} — den kan tages med ${targetName}.`);
+      selectedCardId = null;
+      finishPlayerTurn();
+    }
+
     function finishPlayerTurn() {
       state.turn = "computer";
       state.lastSwipperMessage = state.lastSwipperMessage || "";
@@ -1375,6 +1462,7 @@
         if (moves.length > 0) {
           const move = moves[0];
           if (move.type === "take") computerTake(move);
+          else if (move.type === "table-build") computerTableOnlyBuild(move);
           else computerBuild(move);
         } else {
           const cardToLay = chooseComputerLayCard();
@@ -1430,6 +1518,19 @@
       log(`Computeren byggede ${move.targetValue} med ${buildCards.map(cardName).join(" + ")}.`);
     }
 
+
+    function computerTableOnlyBuild(move) {
+      const usedItems = move.tableItems.map(item => removeTableItem(itemId(item))).filter(Boolean);
+      const buildCards = usedItems.flatMap(itemCards);
+      state.table.push({
+        type: "building",
+        id: `B${state.buildingCounter++}`,
+        value: move.targetValue,
+        cards: buildCards
+      });
+      log(`Computeren samlede en bordbygning på ${move.targetValue} med ${buildCards.map(cardName).join(" + ")}.`);
+    }
+
     function chooseComputerLayCard() {
       return [...state.computerHand].sort((a, b) => cardStrategicScore(a) - cardStrategicScore(b))[0];
     }
@@ -1462,7 +1563,7 @@
         bigKasino: pile.some(c => c.id === "10D") ? 2 : 0,
         littleKasino: pile.some(c => c.id === "2S") ? 1 : 0,
         swippers,
-        mostCards: pile.length > opponentPile.length ? 3 : 0,
+        mostCards: pile.length > opponentPile.length ? 1 : 0,
         mostSpades: mySpades > oppSpades ? 1 : 0,
         total: 0
       };
@@ -1475,7 +1576,7 @@
       return `
         <div style="margin-top:8px;">
           <span class="pill green">Point: ${s.total}</span>
-          <span class="pill">Kort: ${s.cards}${s.mostCards ? " +3" : ""}</span>
+          <span class="pill">Kort: ${s.cards}${s.mostCards ? " +1" : ""}</span>
           <span class="pill">Spar: ${s.spades}${s.mostSpades ? " +1" : ""}</span>
           <span class="pill">Es: ${s.aces}</span>
           <span class="pill purple">Swippere: ${s.swippers}</span>
@@ -1502,7 +1603,8 @@
       const card = state.playerHand.find(c => c.id === selectedCardId);
       const takeMoves = tableCaptureItemsFor(card);
       const buildMoves = possibleBuildsForCard(card, state.playerHand);
-      const allMoves = [...takeMoves, ...buildMoves].sort((a, b) => b.score - a.score);
+      const tableBuildMoves = possibleTableOnlyBuildsForCard(card, state.playerHand);
+      const allMoves = [...takeMoves, ...buildMoves, ...tableBuildMoves].sort((a, b) => b.score - a.score);
       const best = allMoves[0];
 
       const layButton = `<button class="move-btn" onclick="playCardWithoutTake('${card.id}')">Læg ${cardName(card)} på bordet uden stik</button>`;
@@ -1535,12 +1637,21 @@
         `;
       }).join("");
 
-      if (!takeMoves.length && !buildMoves.length) {
+      const tableBuildButtons = tableBuildMoves.map(move => {
+        const bestClass = best === move ? "best" : "";
+        return `
+          <button class="move-btn tablebuild ${bestClass}" onclick="tableOnlyBuildMove('${move.tableItems.map(itemId).join(",")}', '${move.targetValue}', '${move.targetCard.id}')">
+            ${bestClass ? "⭐ " : ""}Bordbygning ${move.targetValue}: Saml ${move.tableItems.map(itemName).join(" + ")} — du har ${cardName(move.targetCard)} til at tage den
+          </button>
+        `;
+      }).join("");
+
+      if (!takeMoves.length && !buildMoves.length && !tableBuildMoves.length) {
         area.innerHTML = `<div class="move-list"><button class="move-btn" disabled>Ingen stik eller bygning med ${cardName(card)}.</button>${layButton}</div>`;
         return;
       }
 
-      area.innerHTML = `<div class="move-list">${takeButtons}${buildButtons}${layButton}</div>`;
+      area.innerHTML = `<div class="move-list">${takeButtons}${buildButtons}${tableBuildButtons}${layButton}</div>`;
     }
 
     function renderResult() {
