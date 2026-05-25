@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kasino Hjælper v10.2 — Kasino Values</title>
+  <title>Kasino Hjælper v10.3 — Smart Drag Fix</title>
   <meta name="theme-color" content="#063b2d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Kasino Hjælper" />
@@ -522,7 +522,7 @@
         <div class="brand-badge">◆ Aalborg Swipper Edition</div>
         <h1>Kasino Hjælper</h1>
         <div class="subtitle">
-          v10.2: Korrekte Kasino-værdier, Aalborg/AaB-inspireret tema, <strong>drag-and-drop</strong>, bygninger, dobbeltbygninger og <strong>Swipper</strong>. 5♠ kan stadig swippe hele bordet — også bygninger.
+          v10.3: Smart drag-and-drop, korrekte Kasino-værdier, Aalborg/AaB-inspireret tema, bygninger, dobbeltbygninger og <strong>Swipper</strong>. 5♠ kan stadig swippe hele bordet — også bygninger.
         </div>
 
         <details class="design-panel">
@@ -579,7 +579,7 @@
             </div>
           </div>
           <div id="tableDropZone" class="table-drop-zone" ondragover="handleTableDragOver(event)" ondragleave="handleTableDragLeave(event)" ondrop="handleTableDrop(event)">
-            <div class="drop-hint">Træk et kort hertil for at lægge det på bordet</div>
+            <div class="drop-hint">Træk et kort hertil: tager stik hvis muligt, ellers lægger det kortet</div>
             <div id="tableCards" class="cards"></div>
           </div>
         </div>
@@ -606,7 +606,7 @@
           <div id="moveArea"></div>
 
           <div class="rules-note">
-            <strong>v10.2-regler:</strong> Du kan tage direkte stik, lave simple bygninger, tage bordbygninger/dobbeltbygninger, lave Swippere og bruge 5♠ til at swippe hele bordet. Du kan også trække et kort fra hånden op på bordet for at lægge det. Lille Kasino 2♠ har værdierne 2 og 15. Store Kasino 10♦ har værdierne 10 og 16. Flest kort giver 1 point.
+            <strong>v10.2-regler:</strong> Du kan tage direkte stik, lave simple bygninger, tage bordbygninger/dobbeltbygninger, lave Swippere og bruge 5♠ til at swippe hele bordet. Du kan også trække et kort fra hånden op på bordet: hvis kortet kan tage et stik eller en bygning, tager appen stikket; ellers lægger den kortet. Lille Kasino 2♠ har værdierne 2 og 15. Store Kasino 10♦ har værdierne 10 og 16. Flest kort giver 1 point.
             Bygning i denne version: spil et talkort sammen med løse bordkort og byg til en værdi, som du også har på hånden. Ny/fikset i v10.1: bordkort alene kan også samles til en bygning, som tages med et matchende kort på hånden — fx 10 + 3 = 13, som kan tages med K.
           </div>
         </div>
@@ -1314,6 +1314,26 @@
       const cardId = draggedCardId || (event.dataTransfer ? event.dataTransfer.getData("text/plain") : null);
       draggedCardId = null;
       if (!cardId) return;
+      smartDropCard(cardId);
+    }
+
+    function smartDropCard(cardId) {
+      // v10.3: Dragging a card to the table now prefers a legal take.
+      // Example: if table has a building on 8 and you drag your 8,
+      // the app takes the building instead of laying the 8 beside it.
+      if (state.gameOver || state.turn !== "player") return;
+
+      const card = state.playerHand.find(c => c.id === cardId);
+      if (!card) return;
+
+      const takeMoves = tableCaptureItemsFor(card).sort((a, b) => b.score - a.score);
+
+      if (takeMoves.length) {
+        const bestTake = takeMoves[0];
+        takeMove(cardId, bestTake.takeItems.map(itemId).join(","), bestTake.kind);
+        return;
+      }
+
       playCardWithoutTake(cardId);
     }
 

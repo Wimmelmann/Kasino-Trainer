@@ -1,20 +1,20 @@
-# Kasino Hjælper v10.2 — Kasino Values
+# Kasino Hjælper v10.3 — Smart Drag Fix
 
 Patch:
-- Lille Kasino 2♠ har nu værdierne 2 og 15.
-- Store Kasino 10♦ har nu værdierne 10 og 16.
-- Bygninger kan nu bruge de nye værdier op til 16.
-- Flest kort ved slutscoring giver nu 1 point.
-- Tidligere v10.1-fix er bevaret:
-  - K/Q/J-bygninger
-  - bordbygninger
-  - Aalborg-design
-  - temaindstillinger
-  - drag-and-drop
-  - Swipper
-  - 5♠ swipper hele bordet
+- Fixer drag-and-drop buggen med bygninger.
+- Hvis du har fx en bygning på 8 på bordet, og du trækker din 8'er op på bordet, tager appen nu bygningen/stikket.
+- Hvis kortet IKKE kan tage noget, lægger appen kortet på bordet som før.
 
-Upload/erstat disse filer i roden af dit GitHub repo:
+Bevaret fra v10.2:
+- Lille Kasino 2♠ = 2 og 15
+- Store Kasino 10♦ = 10 og 16
+- Flest kort = 1 point
+- K/Q/J-bygninger
+- bordbygninger og dobbeltbygninger
+- Aalborg-design og temaindstillinger
+- Swipper og 5♠ full-table Swipper
+
+Upload/erstat disse filer:
 - index.html
 - manifest.webmanifest
 - service-worker.js
