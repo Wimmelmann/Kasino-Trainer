@@ -1,18 +1,21 @@
-# Kasino Hjælper v9.1 — Hurtigere Computer
-
-Patch:
-- Fixer problemet hvor computeren kan blive hængende på “Computeren tænker...”
-- Computerens bygning-søgning er nu begrænset og hurtigere
-- Computeren leder først efter direkte stik, og overvejer kun bygninger hvis der ikke er et stik
-- Fallback: hvis AI-beregningen fejler, lægger computeren bare et kort i stedet for at hænge
-
-Upload/erstat disse filer i roden af dit GitHub repo:
-- index.html
-- manifest.webmanifest
-- service-worker.js
-- icon-192.png
-- icon-512.png
-
-Hvis telefonen stadig viser gammel version:
-- Luk appen helt og åbn igen
-- Eller åbn linket i browseren og refresh
+{
+  "name": "Kasino Hjælper",
+  "short_name": "Kasino",
+  "description": "Spil Kasino mod computeren med Aalborg-tema, designindstillinger, drag-and-drop, bygninger og Swipper.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0F1B2D",
+  "theme_color": "#0F1B2D",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
